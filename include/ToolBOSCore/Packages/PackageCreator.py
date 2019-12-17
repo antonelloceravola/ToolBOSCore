@@ -322,8 +322,14 @@ class PackageCreator_C_BBDM( PackageCreator ):
         self.templatize( os.path.join( srcDir, 'packageName.c.mako' ),
                          os.path.join( dstDir, 'src', '%s.c' % self.packageName ) )
 
+        self.templatize( os.path.join( srcDir, 'packageName_ext.c.mako' ),
+                         os.path.join( dstDir, 'src', '%s_ext.c' % self.packageName ) )
+
         self.templatize( os.path.join( srcDir, 'packageName.h.mako' ),
                          os.path.join( dstDir, 'src', '%s.h' % self.packageName ) )
+
+        self.templatize( os.path.join( srcDir, 'packageName_ext.h.mako' ),
+                         os.path.join( dstDir, 'src', '%s_ext.h' % self.packageName ) )
 
         # overwrite the file from master template
         self.copyVerbatim( os.path.join( srcDir, 'unittest.sh' ),
