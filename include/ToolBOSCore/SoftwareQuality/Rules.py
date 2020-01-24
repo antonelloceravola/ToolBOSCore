@@ -335,7 +335,10 @@ variables, functions, classes) and filenames must be English.'''
 who might be using your source code in the future.
 
 English as corporate language should be reflected in the source code as well.
-Other languages such as German or Japanese should be avoided.'''
+Other languages such as German or Japanese should be avoided.
+
+Note that your application may well support various languages, e.g. print
+Japanese output on screen.'''
 
     goodExample = '''\tint result = 123;'''
 
@@ -460,11 +463,17 @@ class Rule_GEN03( AbstractRule ):
     brief       = '''Stick to 80 characters per line. Exceptions are fine
 when increasing readability.'''
 
-    description = '''Limiting to 80 characters eases editing / viewing:
+    description = '''Yes, monitors noawadays are huge and can display more
+characters per line. Instead the reason of limiting to 80 characters are:
 
-  * IDEs show add. widgets at left / right side
-  * xterm defaults to 80x25
-  * merging sources (side-by-side view)'''
+  * diff-ing two or three files next to each other, f.i. code comparison
+  * IDEs + debuggers + source code analyzers show many widgets around the code
+  * simpler editing / viewing
+  * terminals default to 80x25, widely used for "less" / "git show" / ...
+  * merging sources (side-by-side view)
+
+Where readability would be increased, we allow a few exceptions up to 120
+characters per line.'''
 
     sqLevel     = frozenset( [ 'cleanLab', 'basic', 'advanced', 'safety' ] )
 
@@ -531,8 +540,11 @@ work for HRI-EU.
 This copyright header must also be applied by contractors and students working
 for HRI-EU.
 
-This rule does not need to be applied to auto-generated files, such as doxygen
-HTML documentation or generated SWIG code.
+This rule does not need to be applied to auto-generated files (such as doxygen
+HTML documentation or generated SWIG code).
+
+This rule shall not be applied to open-source code released under a particular
+license that most often requires a specific header.
 
 *Header for C / C++ / Java files:*
 
@@ -633,10 +645,7 @@ HTML documentation or generated SWIG code.
     #
     #-->
 
-Please replace *description* by a very short summary what this file is about.
-
-Note: Author names are not part of the header. Instead they should be listed
-in the documentation.'''
+Please replace *description* by a very short summary what this file is about.'''
 
     seeAlso     = { 'rule DOC-04': None }
 
@@ -777,7 +786,11 @@ show:
   * the code is compilable (f.i. on multiple platforms)
   * no broken dependencies, such as API changes
   * executables are runnable (no undefined symbols, missing files,...)
-  * tested code somehow behaves as expected'''
+  * tested code somehow behaves as expected
+
+Please provide a generic `unittest.sh` (Linux) and/or `unittest.bat`
+(Windows) in the top-level directory of the package. This shall invoke any
+package-specific testsuite.'''
 
     seeAlso     = { 'Unittest HowTo': 'ToolBOS_Util_BuildSystemTools_Unittesting' }
 
@@ -826,7 +839,7 @@ Best approach is to install 3rd-party-software independently into SIT, and
 interface with it.'''
 
     goodExample = '''\tMyPackage
-\t\t1.0
+\t\t1.0 (version directory is optional)
 \t\t\texternal (or "3rdParty")
 \t\t\t\tcmake.org
 \t\t\t\t\t[...]
@@ -880,7 +893,7 @@ class Rule_GEN10( AbstractRule ):
   * avoids chaos of various copies + patchfiles
   * central backup
 
-Note: HRI-EU permits to use Git or Subversion (SVN).'''
+Note: HRI-EU recommends to use Git.'''
 
     seeAlso     = { 'SVN HowTo': 'ToolBOS_HowTo_SVN',
                     'Git HowTo': 'ToolBOS_HowTo_Git' }
@@ -949,6 +962,35 @@ predefine the seed or to assign some fixed value that should be taken instead.
 '''
 
     sqLevel     = frozenset()
+
+
+class Rule_GEN13( AbstractRule ):
+
+    brief       = '''Always check return-values of function'''
+
+    description = '''Return values, especially those indicating errors,
+should not be silently ignored. If some return value is not very useful
+(as could be those of `printf()` or `close()`), you should provide a cast
+and/or comment that it has been ignored on purpose.'''
+
+    sqLevel     = frozenset()
+
+
+class Rule_GEN14( AbstractRule ):
+
+    brief       = '''Strive for simple control-flows and keep functions
+short'''
+
+    description = '''Complex control-flows and long functions make reasoning
+about and code-checking difficult, f.i. the cyclomatic complexity should be
+sufficiently low.
+
+Overly long functions are difficult to understand (especially if you have to
+scroll).
+
+Attempt to break-down functions longer than approximately 60 lines of code
+into smaller chunks, and review their responsabilities. A function shall
+perform one job only.'''
 
 
 class Rule_C01( AbstractRule ):
@@ -1267,7 +1309,9 @@ class Rule_C04( AbstractRule ):
     brief       = '''A function without parameters must be declared with a
 `void` argument list.'''
 
-    description = '''A `void` argument list indicates that the function does
+    description = '''This rule only applies to C code.
+
+A `void` argument list indicates that the function does
 not take arguments. Hence the compiler can check for invalid calls where
 unexpected parameters are supplied.
 
@@ -1283,7 +1327,7 @@ updated and still passes parameters.'''
     badExample  = '''   int Foo_run();'''
 
     seeAlso     = { 'CERT DCL20-C':
-                    'https://www.securecoding.cert.org/confluence/display/c/DCL20-C.+Explicitly+specify+void+when+a+function+accepts+no+arguments' }
+                    'https://wiki.sei.cmu.edu/confluence/display/c/DCL20-C.+Explicitly+specify+void+when+a+function+accepts+no+arguments' }
 
     sqLevel     = frozenset( [ 'cleanLab', 'basic', 'advanced', 'safety' ] )
 
@@ -1356,7 +1400,7 @@ and other compile errors.'''
 '''
 
     seeAlso     = { 'CERT PRE06-CPP':
-                    'https://www.securecoding.cert.org/confluence/display/cplusplus/PRE06-CPP.+Enclose+header+files+in+an+inclusion+guard' }
+                    'https://wiki.sei.cmu.edu/confluence/display/c/PRE06-C.+Enclose+header+files+in+an+include+guard' }
 
     sqLevel     = frozenset( [ 'cleanLab', 'basic', 'advanced', 'safety' ] )
 
@@ -1390,21 +1434,28 @@ and other compile errors.'''
                     continue
 
                 # Note that we are searching with regexp for a more relaxed
-                # string with possible leading namespace name, but we print
-                # a stricter safeguard name in case it was not found,
-                # see JIRA ticket TBCORE-918
+                # string with possible pre-/postfix namespace name, but we
+                # print a stricter safeguard name in case it was not found,
+                # see JIRA tickets TBCORE-918 and TBCORE-2060
                 #
-                # allowed:  #ifndef DOT_PACKAGENAME_H
-                #
-                # where "DOT_" is an optional namespace prefix
+                # allowed:      PACKAGENAME_H
+                #           FOO_PACKAGENAME_H
+                #           FOO_PACKAGENAME_H_BAR
+                #               PACKAGENAME_H_BAR
+                #           FOO_PACKAGENAME_BAZ_H_BAR
+                #               PACKAGENAME_BAZ_H
 
                 safeguard   = '#ifndef %s_H' % moduleUpper
-                regexp      = re.compile( '#ifndef\s\S*?%s_H' % moduleUpper )
+                regexp      = re.compile( '#ifndef\s(\S*?%s\S*_H\S*)' % moduleUpper )
 
-                if regexp.search( content ):
+                tmp = regexp.search( content )
+
+                if tmp:
+                    logging.debug( "C05: %s: safeguard %s found",
+                                   filePath, tmp.group(1) )
                     self.passed += 1
                 else:
-                    logging.info( "C05: %s: safeguard '%s' not found",
+                    logging.info( "C05: %s: safeguard %s not found",
                                   filePath, safeguard )
                     self.failed += 1
 
@@ -1501,7 +1552,7 @@ reasons. And consistency is a soft skill for good quality software.'''
                     'Any_About',
 
                     'CERT ERR00-CPP':
-                    'https://www.securecoding.cert.org/confluence/display/cplusplus/ERR00-CPP.+Adopt+and+implement+a+consistent+and+comprehensive+error-handling+policy' }
+                    'https://wiki.sei.cmu.edu/confluence/display/c/ERR00-C.+Adopt+and+implement+a+consistent+and+comprehensive+error-handling+policy' }
 
     sqLevel     = frozenset()
 
@@ -1532,13 +1583,13 @@ types, f.i. `BaseI16` or `BaseI64`, defined in `Base.h.`'''
                     'Base_About',
 
                     'CERT NUM03-J':
-                    'https://www.securecoding.cert.org/confluence/display/java/NUM03-J.+Use+integer+types+that+can+fully+represent+the+possible+range+of++unsigned+data',
+                    'https://wiki.sei.cmu.edu/confluence/display/java/NUM03-J.+Use+integer+types+that+can+fully+represent+the+possible+range+of++unsigned+data',
 
                     'CERT INT31-C':
-                    'https://www.securecoding.cert.org/confluence/display/c/INT31-C.+Ensure+that+integer+conversions+do+not+result+in+lost+or+misinterpreted+data',
+                    'https://wiki.sei.cmu.edu/confluence/display/c/INT31-C.+Ensure+that+integer+conversions+do+not+result+in+lost+or+misinterpreted+data',
 
                     'CERT INT08-C':
-                    'https://www.securecoding.cert.org/confluence/display/seccode/INT08-C.+Verify+that+all+integer+values+are+in+range' }
+                    'https://wiki.sei.cmu.edu/confluence/display/c/INT08-C.+Verify+that+all+integer+values+are+in+range' }
 
     sqLevel     = frozenset()
 
@@ -1672,8 +1723,13 @@ once in a while inspect your code using Klocwork.'''
         return result
 
 
-class Rule_C11( RemovedRule ):
-    pass
+class Rule_C11( AbstractRule ):
+    brief       = '''`setjmp()` and `longjmp()` are forbidden'''
+
+    description = '''The two functions `setjmp()` and `longjmp()` make the
+execution paths through the code overly complicated. Do not use them.'''
+
+    sqLevel     = frozenset( [ 'advanced', 'safety' ] )
 
 
 class Rule_C12( AbstractValgrindRule ):
@@ -1752,7 +1808,7 @@ Avoiding cluttering the global name space prevents the variable from being
 accidentally (or intentionally) invoked from another compilation unit.'''
 
     seeAlso     = { 'CERT DCL19-C':
-                    'https://www.securecoding.cert.org/confluence/display/CINT/DCL19-C.+Minimize+the+scope+of+variables+and+functions' }
+                    'https://wiki.sei.cmu.edu/confluence/display/c/DCL19-C.+Minimize+the+scope+of+variables+and+functions' }
 
     sqLevel     = frozenset( [ 'basic', 'advanced', 'safety' ] )
 
@@ -1794,6 +1850,80 @@ Specify an empty list if really nothing has to be executed.'''
         Any.requireIsInstance( details, PackageDetector )
 
         return details.testDirArch
+
+
+class Rule_C16( AbstractRule ):
+
+    brief       = '''Use the preprocessor only for inclusion of header-files
+and simple macros.'''
+
+    description = '''Complex and multiple levels of macros obfuscate the
+code and make reasoning about it or debugging difficult.
+
+In most circumstances, functions should be used instead of macros.
+Functions perform argument type-checking and evaluate their arguments once,
+thus avoiding problems with potential multiple side effects.
+
+In many debugging systems, it is easier to step through execution of a
+function than a macro. Nonetheless, macros may be useful in some
+circumstances.'''
+
+    seeAlso     = { 'MISRA-2012 rule 4.9':
+                    None,
+                    'CERT PRE00-C':
+                    'https://wiki.sei.cmu.edu/confluence/display/c/PRE00-C.+Prefer+inline+or+static+functions+to+function-like+macros' }
+
+    sqLevel     = frozenset( [ 'safety' ] )
+
+    def run( self, details, files ):
+        if not details.isCPackage() and not details.isCppPackage():
+            return NOT_APPLICABLE, 0, 0, 'no C/C++ code found in src/'
+
+        logging.debug( 'checking C/C++ function-like macro presence' )
+        passed   = 0
+        failed   = 0
+        platform = getHostPlatform()
+
+        headerAndLanguageMap = CMake.getHeaderAndLanguageMap( platform )
+        logging.debug( 'language map: %s', headerAndLanguageMap )
+
+        try:
+
+            for filePath in files:
+                _, ext = os.path.splitext( filePath )
+                if ext in C_CPP_FILE_EXTENSIONS:
+
+                    parser = createCParser( filePath, details, headerAndLanguageMap )
+
+                    if not parser:
+                        continue
+
+                    for define in parser.localMacros.values():
+
+                        if not define.name.isupper():
+                            logging.info( 'C16: %s:%d - define "%s" is not uppercase',
+                                            filePath, define.location[ 1 ], define.name )
+                            failed += 1
+
+                    for define in parser.localFnMacros.values():
+
+                        logging.info( 'C16: %s:%d - function-like define "%s"',
+                                        filePath, define.location[ 1 ], define.name )
+
+                    failed += len( parser.localFnMacros )
+
+            if failed == 0:
+                result = ( OK, passed, failed,
+                           'No function-like defines found' )
+            else:
+                result = ( FAILED, passed, failed,
+                           'Function-like defines found' )
+
+        except EnvironmentError as e:
+            logging.error( e )
+            result = ( FAILED, passed, failed, e )
+
+        return result
 
 
 class Rule_PY01( RemovedRule ):
@@ -1900,15 +2030,15 @@ They map the `ANY_LOG()` / `ANY_REQUIRE()` terminology and usage to Python's
     # possibility A (native way):
 
     import logging
-    [...]
+
     logging.info( "Hello, World!" )
     logging.info( 'x=%d', x )
 
 
-    # possibility B (ANY-equivalent)
+    # possibility B (Any.h-equivalent)
 
     import ToolBOSCore.Util.Any
-    [...]
+
     Any.setDebugLevel( 3 )
     Any.log( 3, "Hello, World!" )
     Any.requireMsg( x == 123, "Oops..." )
@@ -1923,17 +2053,18 @@ They map the `ANY_LOG()` / `ANY_REQUIRE()` terminology and usage to Python's
 
 class Rule_PY04( AbstractRule ):
 
-    brief       = '''Prefer throwing exceptions over sys.exit(), os.exit()
-                     and os._exit() within the code.'''
+    brief       = '''Prefer throwing exceptions over `exit()` within the
+code.'''
 
     description = '''As a rule of thumb, Python functions should hardly
 directly terminate the application. Prefer throwing an exception
 (`SystemExit` if necessary), so that the caller at least has a chance to
 appropriately handle it.
 
-Mind that the caller might be a C- or Java-program containing a Python
+Mind that the caller might be another program containing a Python
 interpreter. In such case the `sys.exit(0)` will terminate the whole
-application, potentially causing data loss or inconsistent states.'''
+application with no chance for the program to react to such situation,
+potentially causing data loss or inconsistent states.'''
 
     goodExample = '''
     if not foo:
@@ -1993,7 +2124,7 @@ application, potentially causing data loss or inconsistent states.'''
         failed    = 0
         syntaxErr = 0
 
-        binDir = os.path.join( details.topLevelDir, 'bin' )
+        binDir = os.path.realpath( os.path.join( details.topLevelDir, 'bin' ) )
 
         for filePath in files:
             if filePath.endswith( '.py' ) and not filePath.startswith( binDir ):
@@ -2043,8 +2174,7 @@ analyzer for Python. The analyzer can also be used separately from commandline.
 It reports problems in your Python scripts, such as wrong API usage,
 incompatibility with certain Python versions, or questionable coding practics.
 
-Please regularly inspect your scripts using PyCharm. The tool is installed
-under `${SIT}/External/PyCharmPro`.'''
+Please regularly inspect your scripts using PyCharm.'''
 
     seeAlso     = { 'PyCharm Home':
                     'https://www.jetbrains.com/pycharm' }
@@ -2117,19 +2247,18 @@ under `${SIT}/External/PyCharmPro`.'''
 
 class Rule_PY06( AbstractRule ):
 
-    brief       = '''Mind compatibility with Python versions 2.6 to 3.x'''
+    brief       = '''Mind compatibility with Python versions 2.7 to 3.x'''
 
     description = '''Python comes in various language versions, featuring
 different included packages or language constructs. However the install base
 is quite heterogeneous.
 
 Hence developers should pro-actively care that scripts are compatible with a
-range of Python versions. At least compatibility with 2.6, 2.7 and 3.4 is
+range of Python versions. At least compatibility with 2.7 and latest 3.x is
 desired.
 
 The **PyCharm IDE** can be configured to annotate code incompatible with
-certain versions of Python. The tool is installed under
-`${SIT}/External/PyCharmPro`.'''
+certain versions of Python.'''
 
     seeAlso     = { 'PyCharm Home':
                     'https://www.jetbrains.com/pycharm' }
@@ -2570,7 +2699,7 @@ To avoid any risks arising from usage of wide characters multi-byte string
 literals their use in safety-critical application is highly discouraged.'''
 
     seeAlso      = { 'CERT STR38-C':
-                     'https://www.securecoding.cert.org/confluence/display/CINT/STR38-C.+Do+not+confuse+narrow+and+wide+character+strings+and+functions' }
+                     'https://wiki.sei.cmu.edu/confluence/display/c/STR38-C.+Do+not+confuse+narrow+and+wide+character+strings+and+functions' }
 
     sqLevel      = frozenset( [ 'safety' ] )
 
@@ -2723,78 +2852,6 @@ terminating `\\0` must not be used.'''
                     'AnyString_About' }
 
     sqLevel     = frozenset( [ 'safety' ] )
-
-
-class Rule_SAFE08( AbstractRule ):
-
-    brief       = '''Functions should be preferred over function-like
-macros.'''
-
-    description = '''In most circumstances, functions should be used instead
-of macros. Functions perform argument type-checking and evaluate their
-arguments once, thus avoiding problems with potential multiple side effects.
-
-In many debugging systems, it is easier to step through execution of a
-function than a macro. Nonetheless, macros may be useful in some
-circumstances.'''
-
-    seeAlso     = { 'MISRA-2012 rule 4.9':
-                    None,
-                    'CERT PRE00-C':
-                    'https://www.securecoding.cert.org/confluence/display/c/PRE00-C.+Prefer+inline+or+static+functions+to+function-like+macros' }
-
-    sqLevel     = frozenset( [ 'safety' ] )
-
-    def run( self, details, files ):
-        if not details.isCPackage() and not details.isCppPackage():
-            return NOT_APPLICABLE, 0, 0, 'no C/C++ code found in src/'
-
-        logging.debug( 'checking C/C++ function-like macro presence' )
-        passed   = 0
-        failed   = 0
-        platform = getHostPlatform()
-
-        headerAndLanguageMap = CMake.getHeaderAndLanguageMap( platform )
-        logging.debug( 'language map: %s', headerAndLanguageMap )
-
-        try:
-
-            for filePath in files:
-                _, ext = os.path.splitext( filePath )
-                if ext in C_CPP_FILE_EXTENSIONS:
-
-                    parser = createCParser( filePath, details, headerAndLanguageMap )
-
-                    if not parser:
-                        continue
-
-                    for define in parser.localMacros.values():
-
-                        if not define.name.isupper():
-                            logging.info( 'SAFE08: %s:%d - define "%s" is not uppercase',
-                                            filePath, define.location[ 1 ], define.name )
-                            failed += 1
-
-                    for define in parser.localFnMacros.values():
-
-                        logging.info( 'SAFE08: %s:%d - function-like define "%s"',
-                                        filePath, define.location[ 1 ], define.name )
-
-                    failed += len( parser.localFnMacros )
-
-            if failed == 0:
-                result = ( OK, passed, failed,
-                           'No function-like defines found' )
-            else:
-                result = ( FAILED, passed, failed,
-                           'Function-like defines found' )
-
-        except EnvironmentError as e:
-            logging.error( e )
-            result = ( FAILED, passed, failed, e )
-
-
-        return result
 
 
 class Rule_SPEC01( AbstractRule ):
