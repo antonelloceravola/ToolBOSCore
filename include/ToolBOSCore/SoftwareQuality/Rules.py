@@ -121,42 +121,25 @@ class AbstractValgrindRule( AbstractRule ):
             logging.error( 'no executables found in %s, forgot to compile?', exeDir )
             return FAILED, 0, 0, 'no executables found'
 
-        platform     = getHostPlatform()
         exeFilesPath = []
 
         for exeFile in exeFiles:
-            if ruleId == 'C12':
-                tmp = os.path.join( 'bin', platform, exeFile )
-                exeFilesPath.append(tmp)
-            elif ruleId == 'C15':
-                tmp = os.path.join( 'test', platform, exeFile )
-                exeFilesPath.append(tmp)
-            else:
-                continue
+            relPath = os.path.relpath( exeDir )
+            tmp = os.path.join( relPath,exeFile )
+            exeFilesPath.append(tmp)
 
-        logging.debug( 'executable(s) found in %s directory: %s', exeDir, exeFiles )
+        logging.info( 'executable(s) found in %s directory: %s', exeDir, exeFiles )
 
         # get SQ-settings from pkgInfo.py
-        sqSettings = self.getSQSettings( details )
-        logging.debug( "complete 'sqCheckExe' settings from pkgInfo.py: %s",sqSettings )
+        sqCheckExe = self.filteredSQSettings( details )
 
-        if sqSettings is None:
+        if sqCheckExe is None:
             msg    = "no 'sqCheckExe' settings found in pkgInfo.py, please see %s docs" % ruleId
             result = ( FAILED, 0, 1, msg )
 
             return result
 
-        sqCheckExe = []
-
-        for setting in sqSettings:
-            if ruleId == 'C12'and setting.startswith( 'bin' ):
-                sqCheckExe.append( setting )
-            elif ruleId == 'C15'and setting.startswith( 'test' ):
-                sqCheckExe.append( setting )
-            else:
-                continue
-
-        logging.debug( "'sqCheckExe' settings for %s from pkgInfo.py: %s", ruleId, sqCheckExe )
+        logging.info( "'sqCheckExe' settings for %s from pkgInfo.py: %s", ruleId, sqCheckExe )
 
         if not sqCheckExe:
             msg    = "no 'sqCheckExe' settings for %s found in pkgInfo.py, please see %s docs" % ( ruleId, ruleId )
@@ -223,6 +206,10 @@ class AbstractValgrindRule( AbstractRule ):
             logging.error( "no 'sqCheckExe' found in pkgInfo.py (please see C12 docs)" )
 
             return None
+
+
+    def filteredSQSettings( self, details ):
+        raise NotImplementedError
 
 
     def getExeDir( self, details ):
@@ -1782,6 +1769,30 @@ Specify an empty list if really nothing has to be executed.'''
 
         return details.binDirArch
 
+    def filteredSQSettings( self, details ):
+        ruleId = self.getRuleID()
+
+        sqSettings = self.getSQSettings( details )
+        logging.debug( "complete 'sqCheckExe' settings from pkgInfo.py: %s",sqSettings )
+
+        if sqSettings is None:
+            msg    = "no 'sqCheckExe' settings found in pkgInfo.py, please see %s docs" % ruleId
+            result = ( FAILED, 0, 1, msg )
+
+            return result
+
+        sqCheckExe = []
+
+        for setting in sqSettings:
+            if setting.startswith( 'bin' ):
+                sqCheckExe.append( setting )
+            else:
+                continue
+
+        logging.debug( "'sqCheckExe' settings for %s from pkgInfo.py: %s", ruleId, sqCheckExe )
+
+        return sqCheckExe
+
 
 class Rule_C13( AbstractRule ):
 
@@ -1865,6 +1876,30 @@ Specify an empty list if really nothing has to be executed.'''
         Any.requireIsInstance( details, PackageDetector )
 
         return details.testDirArch
+
+    def filteredSQSettings( self, details ):
+        ruleId = self.getRuleID()
+
+        sqSettings = self.getSQSettings( details )
+        logging.debug( "complete 'sqCheckExe' settings from pkgInfo.py: %s",sqSettings )
+
+        if sqSettings is None:
+            msg    = "no 'sqCheckExe' settings found in pkgInfo.py, please see %s docs" % ruleId
+            result = ( FAILED, 0, 1, msg )
+
+            return result
+
+        sqCheckExe = []
+
+        for setting in sqSettings:
+            if setting.startswith( 'test' ):
+                sqCheckExe.append( setting )
+            else:
+                continue
+
+        logging.debug( "'sqCheckExe' settings for %s from pkgInfo.py: %s", ruleId, sqCheckExe )
+        return sqCheckExe
+
 
 
 class Rule_C16( AbstractRule ):
